@@ -4,7 +4,7 @@
 using namespace std;
 
 // 최대 지원 정보 개수
-const int MAX_APPLICATIONS = 100;
+const int APPLICATIONS_MAXIMUM = 100;
 
 // 회원 구조체
 struct Member {
@@ -16,19 +16,19 @@ struct Member {
 // 지원 정보 구조체
 struct Application {
     string companyName;
-    string businessNumber;
-    string buisnessTask;
-    int recruitingNum;
-    string deadline;
-    string name;
+    string buisnessTask; //업무
+    string deadline; //모집 마감일
+    string name; //지원자이름
+    int recruitingNum; //모집인원수
+    int businessNumber; //사업자 번호
 };
 
 // 지원 정보 배열
-Application application[MAX_APPLICATIONS];
-int numApplications = 0;
+Application application[APPLICATIONS_MAXIMUM];
+int applyNum = 0;
 
 // 회원 배열
-Member members[MAX_APPLICATIONS];
+Member members[APPLICATIONS_MAXIMUM];
 int numMembers = 0;
 
 // 로그인된 회원
@@ -36,7 +36,7 @@ Member* loggedInMember = nullptr;
 
 // 회원 가입 함수
 void signUp() {
-    if (numMembers >= MAX_APPLICATIONS) {
+    if (numMembers >= APPLICATIONS_MAXIMUM) {
         cout << "더 이상 회원을 추가할 수 없습니다." << endl;
         return;
     }
@@ -95,10 +95,9 @@ void logout() {
 }
 
 void sortApplicationsByCompanyName() {
-    for (int i = 0; i < numApplications - 1; i++) {
-        for (int j = 0; j < numApplications - i - 1; j++) {
+    for (int i = 0; i < applyNum - 1; i++) {
+        for (int j = 0; j < applyNum - 1 - i; j++) {
             if (application[j].companyName > application[j + 1].companyName) {
-                // Swap applications[j] and applications[j + 1]
                 Application temp = application[j];
                 application[j] = application[j + 1];
                 application[j + 1] = temp;
@@ -114,7 +113,7 @@ void registerJobOpening() {
         return;
     }
 
-    if (numApplications >= MAX_APPLICATIONS) {
+    if (applyNum >= APPLICATIONS_MAXIMUM) {
         cout << "더 이상 채용 정보를 등록할 수 없습니다." << endl;
         return;
     }
@@ -138,8 +137,8 @@ void registerJobOpening() {
 
     newApplication.name = loggedInMember->id;
 
-    application[numApplications] = newApplication;
-    numApplications++;
+    application[applyNum] = newApplication;
+    applyNum++;
 
     cout << "채용 정보가 등록되었습니다." << endl;
 }
@@ -152,12 +151,12 @@ void searchJobOpening() {
     }
 
     string companyName;
-    cout << "검색할 회사 이름: ";
+    cout << "회사 이름: ";
     cin >> companyName;
 
     bool found = false;
 
-    for (int i = 0; i < numApplications; i++) {
+    for (int i = 0; i < applyNum; i++) {
         if (application[i].companyName == companyName) {
             cout<<application[i].companyName<<" "<<application[i].buisnessTask<<" "<<application[i].recruitingNum<<" "<<application[i].deadline<<endl;
 
@@ -169,91 +168,97 @@ void searchJobOpening() {
         cout << "검색한 회사의 채용 정보를 찾을 수 없습니다." << endl;
     }
 }
-
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////지원내역
 // 지원 내역을 조회하는 함수 (일반 사용자)
 void showApplicationDetails() {
-    if (loggedInMember == nullptr) {
-        cout << "로그인이 필요합니다." << endl;
-        return;
-    }
-
-    cout << "지원 내역" << endl;
+   
+    cout << "지원 정보 조회" << endl;
     sortApplicationsByCompanyName();
     
     // 해당 회원이 지원한 채용 정보를 조회하여 출력
-    for (int i = 0; i < numApplications; i++) {
+    for (int i = 0; i < applyNum; i++) {
         if (application[i].name == loggedInMember->id) {
             cout<<application[i].companyName<<" "<<application[i].buisnessTask<<" "<<application[i].recruitingNum<<" "<<application[i].deadline<<endl;
         }
     }
 }
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////지원내역
+
+/*
+    if (loggedInMember == nullptr) { // 로그인되어 있지 않은 경우
+        cout << "로그인이 필요합니다." << endl;
+        return;
+    }
+    */
 
 // 지원을 취소하는 함수
 void cancelApplication() {
-    if (loggedInMember == nullptr) { // 로그인되어 있지 않은 경우
-        cout << "로그인이 필요합니다." << endl;
-        return;
+    int cancelApplicationIndexNum = -1; // 취소할 지원 정보의 인덱스
+    int businessNumber;
+    cout << "사업자번호 : ";
+    cin >> businessNumber;
+    
+    if (applyNum == 0) { // 지원내역의 개수가 0인 경우
+            cout << "취소할 수 있는 지원내역이 없습니다." << endl;
+            return;
     }
-    int cancelApplicationIndex = -1; // 취소할 지원 정보의 인덱스
-    string companyName;
-    cout << "취소할 회사 이름: ";
-    cin >> companyName;
-
-    // 지원 정보 배열을 순회하면서 취소할 회사 이름과 회원의 지원 정보를 확인
-    for (int i = 0; i < numApplications; i++) {
-        if (application[i].companyName == companyName && application[i].name == loggedInMember->id) {
-            cancelApplicationIndex = i; // 취소할 지원 정보의 인덱스를 저장
-            break; // 해당 지원 정보를 찾았으므로 반복문 종료
+    
+    // 지원 정보 배열을 돌면서 취소할 회사 이름과 검색한 회사명의 일치여부, 일반 회원의 지원 정보를 확인
+    for (int i = 0; i < applyNum; i++) {
+        if (application[i].name == loggedInMember->id && application[i].businessNumber == businessNumber) {
+            cancelApplicationIndexNum = i; // 취소할 지원 정보의 일치하는 인덱스를 저장
+            break;
         }
     }
-
-    if (cancelApplicationIndex != -1) { // 취소할 지원 정보를 찾은 경우
-        // 취소할 지원 정보를 삭제하고 배열을 재정렬
-        for (int i = cancelApplicationIndex; i < numApplications - 1; i++) {
-            application[i] = application[i + 1];
+    
+    if (cancelApplicationIndexNum != -1) { // 취소할 지원 정보를 찾은 경우
+        int i = cancelApplicationIndexNum;
+        for (int i = cancelApplicationIndexNum ; i < applyNum - 1; i++) { // 취소할 지원 정보를 삭제하고 배열을 재정렬
+            application[i] = application[i + 1]; //덮어쓰기
         }
-        numApplications--; // 지원 정보 개수를 감소
-
-        cout << "지원이 취소되었습니다." << endl;
-    } else { // 취소할 지원 정보를 찾지 못한 경우
-        cout << "해당 회사의 지원 정보를 찾을 수 없습니다." << endl;
+        applyNum--; // 지원 정보 개수를 감소
+        cout <<application[i].companyName<<" "<<application[i].businessNumber<<" "<<application[i].buisnessTask<<endl;
     }
-
-    if (numApplications == 0) { // 더 이상 취소할 지원 내역이 없는 경우
-        cout << "더 이상 취소할 지원 내역이 없습니다." << endl;
+    else { // 취소할 지원 정보를 찾지 못한 경우
+        cout << "지원정보를 찾을 수 없습니다." << endl;
     }
+   
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////지원취소
+
 
 // 채용 정보 선택 및 지원하는 함수
 void selectApplication() {
+    /*
     if (loggedInMember == nullptr) { // 로그인되어 있지 않은 경우
         cout << "로그인이 필요합니다." << endl;
         return;
     }
-
+*/
     string companyName;
     cout << "지원할 회사 이름: ";
     cin >> companyName;
 
-    int applicationIndex = -1; // 선택한 채용 정보의 인덱스를 저장하는 변수
+    int applicationIndexNum = -1; // 선택한 채용 정보의 인덱스를 저장하는 변수
 
     // 지원 정보 배열을 순회하면서 선택한 회사 이름과 일치하는 채용 정보를 찾음
-    for (int i = 0; i < numApplications; i++) {
+    for (int i = 0; i < applyNum; i++) {
         if (application[i].companyName == companyName) {
-            applicationIndex = i; // 선택한 채용 정보의 인덱스를 저장
+            applicationIndexNum = i; // 선택한 채용 정보의 인덱스를 저장
             break; // 해당 채용 정보를 찾았으므로 반복문 종료
         }
     }
 
-    if (applicationIndex != -1) { // 선택한 채용 정보를 찾은 경우
-        Application selectedApplication = application[applicationIndex];
+    if (applicationIndexNum != -1) { // 선택한 채용 정보를 찾은 경우
+        Application getApplicationsDetails = application[applicationIndexNum];
 
         cout << "===== 채용 정보 =====" << endl;
-        cout << "회사 이름: " << selectedApplication.companyName << endl;
-        cout << "사업자 번호: " << selectedApplication.businessNumber << endl;
-        cout << "업무: " << selectedApplication.buisnessTask << endl;
-        cout << "인원 수: " << selectedApplication.recruitingNum << endl;
-        cout << "신청 마감일: " << selectedApplication.deadline << endl;
+        cout << "회사 이름: " << getApplicationsDetails.companyName << endl;
+        cout << "사업자 번호: " << getApplicationsDetails.businessNumber << endl;
+        cout << "업무: " << getApplicationsDetails.buisnessTask << endl;
+        cout << "인원 수: " << getApplicationsDetails.recruitingNum << endl;
+        cout << "신청 마감일: " << getApplicationsDetails.deadline << endl;
         cout << "---------------------" << endl;
 
         string choice;
@@ -261,8 +266,8 @@ void selectApplication() {
         cin >> choice;
 
         if (choice == "Y" || choice == "y") { // 지원하는 경우
-            selectedApplication.name = loggedInMember->id; // 현재 로그인한 회원의 ID로 지원 정보 업데이트
-            application[applicationIndex] = selectedApplication;
+            getApplicationsDetails.name = loggedInMember->id; // 현재 로그인한 회원의 ID로 지원 정보 업데이트
+            application[applicationIndexNum] = getApplicationsDetails;
 
             cout << "지원이 완료되었습니다." << endl;
         } else {
