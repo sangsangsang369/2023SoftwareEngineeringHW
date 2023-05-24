@@ -6,22 +6,24 @@ using namespace std;
 // 최대 지원 정보 개수
 const int APPLICATIONS_MAXIMUM = 100;
 
-// 회원 구조체
-struct Member {
+class Member {
+public:
     string id;
     string pw;
     bool isCompanyMember;
 };
 
-// 지원 정보 구조체
-struct Application {
+// 지원 정보 클래스
+class Application {
+public:
     string companyName;
-    string buisnessTask; //업무
-    string deadline; //모집 마감일
-    string name; //지원자이름
-    int recruitingNum; //모집인원수
-    int businessNumber; //사업자 번호
+    string buisnessTask; // 업무
+    string deadline;    // 모집 마감일
+    string name;        // 지원자 이름
+    int recruitingNum;  // 모집 인원수
+    int businessNumber; // 사업자 번호
 };
+
 
 // 지원 정보 배열
 Application application[APPLICATIONS_MAXIMUM];
@@ -174,7 +176,9 @@ void showApplicationDetails() {
    
     cout << "지원 정보 조회" << endl;
     sortApplicationsByCompanyName();
-    
+    if(applyNum ==0){
+        cout<<"지원 내역이 없습니다."<<endl;
+    }
     // 해당 회원이 지원한 채용 정보를 조회하여 출력
     for (int i = 0; i < applyNum; i++) {
         if (application[i].name == loggedInMember->id) {
